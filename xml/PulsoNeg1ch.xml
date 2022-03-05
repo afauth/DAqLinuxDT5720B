@@ -1,0 +1,32 @@
+<xml>
+  <Active>
+    <duration>
+      10
+    </duration>
+    <reclen>
+      1024
+    </reclen>
+    <posttrigger>
+      50
+    </posttrigger> 
+    <ch0>
+      1
+    </ch0>
+    <DCoffset0>
+      32768
+    </DCoffset0>
+    <polarity0>
+      NEGATIVE
+    </polarity0>
+    <threshold0>
+      2040
+    </threshold0>  
+    <trslope0>
+      NEGATIVE
+    </trslope0>  
+    <triggermode>
+      OR
+    </triggermode> 
+  </Active>
+</xml>
+
