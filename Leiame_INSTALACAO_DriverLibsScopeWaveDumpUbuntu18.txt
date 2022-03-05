@@ -1,0 +1,149 @@
+Instalação do CAENScope e do WaveDump no notebook Dell com Ubuntu18 LTS (foi feito o upgrade a partir do 16LTS)
+Usando o usuário: Anderson Campos Fauth, tipo de conta: standard, administrator
+
+CAENDigitizer pode ter uma dos seguintes firmwares:
+- waveform recording firmware (gratuíto, o mais simples, é esse que temos!)
+- DPP firmware (com licença a pagamento! não temos a licença)
+
+CAEN WaveDump does not work with digitizers running DPP firmware.
+
+
+1) *** gnuplot: já esta instalado
+2) baixei os manuais e softwares do site da CAEN https://www.caen.it/download/
+3) segui as instruções de instalação que estão no documento 
+
+UM2091_WaveDump_UserManual_rev18.pdf
+
+================= softwares da digitalizadora que devem ser instalados antes do wavedump
+ - Make sure that your Digitizer is properly installed. 
+	Rrefer to the UM3244_DT5720_UserManual_rev10.pdf  (pg.48 Drivers e Libraries)
+
+	USB 2.0 Drivers were downloadable on CAEN website and are in
+        /home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/CAENUSBdrvB-1.5.4
+        Neste diretorio está o arquivo Readme.txt com instruções de instalação do driver USB	
+  	*** To compile the CAENUSBdrvB device driver:  - Execute: make
+ 	*** To install the CAENUSBdrvB device driver:  - Execute: make install
+		/bin/sh: 1: cannot create /etc/udev/rules.d/10-CAEN-USB.rules: Permission denied
+		fiz: sudo make install
+
+	Libraries
+	CAENDigitizer is a library of func ons designed specifically for the Digi zer families supporting
+	both waveform recording firmware and DPP firmware. The CAENDigitizer library is based on the 
+	CAENComm library. For this reason, the CAENComm libraries must be already installed on the host PC
+	before installing the CAENDigitizer.
+
+	CAENComm library manages the communica on at low level (read and write access). The CAENComm requires 
+	the CAENVMELib library (access to the VME bus) even in the cases where the VME is not used. 
+	CAENVMELib has to be already installed on your PC before installing the CAENComm.
+
+	Ordem de instalação das Libraries: 
+	1) CAENVMELib 
+	2) CAENComm 
+	3) CAENDigitizer
+
+	Essas libraries foram baixadas do site da CAEN (no local do download da CAENDigitizer veja Requirements: [View]) e estão em:
+	/home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/CAENVMELib-3.3.0
+	/home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/CAENComm-1.5.0
+	/home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/CAENDigitizer-2.17.0
+	Veja as instruçoes de instalação no arquivos Readme.txt nesses diretórios.
+
+	/CAENVMELib-3.3.0/CAENVMElibReadme.txt
+	  - Login as root (vou usar o sudo)
+	To install the libCAENVME.so.3.3.0 dynamic library:
+ 	 - Go to the library directory: /home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/CAENVMELib-3.3.0/lib
+	*** - Execute: sudo sh install_x64 (for 64bit installation)
+	The installation copies and installs the library in /usr/lib.
+ls -alg libCAEN*
+lrwxrwxrwx 1 root     29 fev 20  2021 libCAENComm.so -> /usr/lib/libCAENComm.so.1.4.0
+-rwxr-xr-x 1 root  20984 fev 20  2021 libCAENComm.so.1.4.0
+lrwxrwxrwx 1 root     35 fev 20  2021 libCAENDigitizer.so -> /usr/lib/libCAENDigitizer.so.2.15.0
+-rwxr-xr-x 1 root 259416 fev 20  2021 libCAENDigitizer.so.2.15.0
+lrwxrwxrwx 1 root     28 dez 12 08:37 libCAENVME.so -> /usr/lib/libCAENVME.so.3.3.0
+-rwxr-xr-x 1 root  57840 fev 20  2021 libCAENVME.so.3.1.0
+-rwxr-xr-x 1 root  97216 dez 12 08:37 libCAENVME.so.3.3.0
+
+	/CAENComm-1.5.0/Readme.txt
+	  - Login as root
+	To install the dynamic library:
+	  - Go to the library directory /home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/CAENComm-1.5.0/lib
+	***  - Execute: sudo sh install_x64
+	 The installation copies and installs the library in /usr/lib.
+(base) fauth@tanca:/usr/lib$ ls -algt libCAEN*
+lrwxrwxrwx 1 root     29 dez 12 10:43 libCAENComm.so -> /usr/lib/libCAENComm.so.1.5.0
+-rwxr-xr-x 1 root  23920 dez 12 10:43 libCAENComm.so.1.5.0
+lrwxrwxrwx 1 root     28 dez 12 08:37 libCAENVME.so -> /usr/lib/libCAENVME.so.3.3.0
+-rwxr-xr-x 1 root  97216 dez 12 08:37 libCAENVME.so.3.3.0
+lrwxrwxrwx 1 root     35 fev 20  2021 libCAENDigitizer.so -> /usr/lib/libCAENDigitizer.so.2.15.0
+-rwxr-xr-x 1 root 259416 fev 20  2021 libCAENDigitizer.so.2.15.0
+-rwxr-xr-x 1 root  20984 fev 20  2021 libCAENComm.so.1.4.0
+-rwxr-xr-x 1 root  57840 fev 20  2021 libCAENVME.so.3.1.0
+
+	CAENDigitizer-2.17.0
+	/CAENDigitizer-2.17.0/Readme.txt
+ 	- Run install_64 for Linux 64 bit platform (use o sudo)
+	/home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/CAENDigitizer-2.17.0 sudo sh install_64
+(base) fauth@tanca:/usr/lib$ ls -algt libCAEN*
+lrwxrwxrwx 1 root     35 dez 12 10:53 libCAENDigitizer.so -> /usr/lib/libCAENDigitizer.so.2.17.0
+-rwxr-xr-x 1 root 220272 dez 12 10:53 libCAENDigitizer.so.2.17.0
+lrwxrwxrwx 1 root     29 dez 12 10:43 libCAENComm.so -> /usr/lib/libCAENComm.so.1.5.0
+-rwxr-xr-x 1 root  23920 dez 12 10:43 libCAENComm.so.1.5.0
+lrwxrwxrwx 1 root     28 dez 12 08:37 libCAENVME.so -> /usr/lib/libCAENVME.so.3.3.0
+-rwxr-xr-x 1 root  97216 dez 12 08:37 libCAENVME.so.3.3.0
+-rwxr-xr-x 1 root 259416 fev 20  2021 libCAENDigitizer.so.2.15.0 => DELETEI
+-rwxr-xr-x 1 root  20984 fev 20  2021 libCAENComm.so.1.4.0 => DELETEI
+-rwxr-xr-x 1 root  57840 fev 20  2021 libCAENVME.so.3.1.0 => DELETEI
+===========================
+
+CAENScope
+Make sure you have installed the required additional packages, if working with Linux OS:
+Usei o Synaptic Package Manager para fazer essas instalações
+- sharutils => feita instalação
+- libXft => já esta instalada a versão 2.3.1-1
+- libXss (specifically for Debian derived distribution, e.g. Debian, Ubuntu, etc.) => já estava instalado, instalei o -dbg
+- libXScrnSaver (specifically for RedHat derived distributions like RHEL, Fedora, Centos, etc.) => não tem nos repositorios do Ubuntu
+
+/home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/caenscope/lib
+Inside the “lib” folder, the CBinaryIn.h and CBinaryIn.cpp files are present and can be used for raw binary
+data files processing (see Chap. 13).
+
+*** Issue “./scope” from the “bin” directory to run the software.
+abrio o CAENScope e esta funcionando!
+=============================
+
+WaveDump
+voltando ao UM2091_WaveDump_UserManual_rev18.pdf
+O WaveDump é compatível somente com o firmware "waveform recording firmware".
+You can use the CAENUpgrader tool to read the digitizer firmware revision [RD9]. 
+É esse firmware que esta instalado na digitalizadora.
+
+Installation
+• Download the WaveDump installation package for Linux from CAEN website
+• Unpack the installation package (tar –zxf <WaveDump-x.y.z.tar.gz).
+/home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/wavedump/wavedump-3.10.3
+
+
+• Follow the instructions on the INSTALL file
+Type: 
+cd /home/fauth/Desktop/DT5720B_DAqTanca/DT5720B_software/wavedump/wavedump-3.10.3
+./configure
+make
+sudo make install
+
+Launch the software typing wavedump
+The default configuration files location is:
+/etc/wavedump/WaveDumpConfig.txt (general purpose default configuration file);
+/etc/wavedump/WaveDumpConfig_x742.txt (default configuration file for x742 digitizers);
+/etc/wavedump/WaveDumpConfig_x740.txt (default configuration file for x740 digitizers).
+
+WaveDump e CAANScope instalados!
+Agora é necessário configuara corretamente o file WaveDumpConfig.txt
+Neste momenento tenho dois codigos possíveis para o DAqTanca:
+1) wavedump modificado (já usei, mas não esta completo, salva dados em txt e pode salvar em binário)
+2) Usar o programa disponivel em
+ https://github.com/samdejong86/CAEN-v1730-DAQ 
+feito para VME V1730 que salva no formato .root e programa coincidencias (mais complicado, mas é o melhor, pois gera um TTree com o evento). É preciso  modifica-lo para a DT5720B (ver a diferença entre a V1730 e a DT5720B)
+
+
+
+
+

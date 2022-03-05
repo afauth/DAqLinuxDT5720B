@@ -1,0 +1,143 @@
+DAqTancaLinuxRootDT5720B
+
+DT5720B
+notebook Dell com Utuntu 18LTS
+user: Anderson, administrator
+
+Driver e Libraries da DT5720 instaladas e funcionando.
+O CAENScope e o wavedump estão rodando.
+Para abri o osciloscopio:
+~/Desktop/DT5720B_DAqTanca/DT5720B_software/caenscope/bin$ ./scope-l64
+Para rodar o wavedump:
+wavedump
+
+Modificação do programa da digitalizadora V1730 para usa-lo na DT5720B
+Veja mais sobre o codigo V1730 
+https://particle.phys.uvic.ca/~srdejong/CAEN-v1730-DAQ/Tutorial.html
+
+Como editar e compilar:
+1) abrir um terminal 
+2) "carregar" as variáveia do Root v6.22 digitanto: root622 (não roda com root v6.24!!!)
+3) nesse terminal abrir o codeblocks digitanto: codeblocks
+4) no codeblocks abrir o arquivo: 
+/home/fauth/Desktop/DT5720B_DAqTanca/DAqTancaLinuxRootDT5720B
+DAqLinux.cbp
+
+CONFIGURAÇÃO
+No menu superior do CodeBlodks: 
+	*** Project -> Set Proram's Arguments... = -v -x ./xml/Tanca_v01.xml
+
+*** para ver a waveform abra o root e digite
+>root622
+>root
+.x drawTanca.C("2021_12_13_00_08tanca.root",0,4)
+o comando acima abre o arquivo .root, le o ch 0, e faz o grafico do 4o. evento
+
+==============
+DT5720B Multi-Channel Triggering COINCIDENCIA:
+Usando um gerador de pulso, dividi o pulso em dois e enviei a dois canais da digitalizadora.
+Para ler a digitalizadora usei o wavedump.
+Os canais que participam do Multi-Channel Triggering devem estar habilitados e com limiar configurado
+ENABLE_INPUT           YES
+TRIGGER_THRESHOLD      50
+
+Na ultima linha do WaveDumpConfigTanca.txt coloquei o seguinte comando
+# coincidence of channel x and channel y, with a majority level of 1, and a coincidence window of 10 trigger clocks
+WRITE_REGISTER 810C 1A00005 FFFFFFFF
+Então rodei o programa
+wavedump WaveDumpConfigTanca.txt
+e parando e voltando a aquisição mudava a posição dos cabos com pulsos nas entradas da digitalizadora.
+Esta funcionando! Notei que é preciso parar a aquisição (teclando s), mudar a posição dos cabos, e depois voltar a adquirir (teclando s novamente). Se trocar a posição dos cabos durante a aquisição a mudança não surte efeito.
+
+Usei a calculadora (no modo programming) do Linix para facilitar a determinação do numero em hexadecimal a ser utilizado na programacao dos 32 bits.
+==============
+
+FEITO
+- inclui a opção de fazer a tomada de dados continuamente. Na opção 'duration' pode ser escolhido um tempo HH:MM:SS, uma quantidade de triggers, e se colcoar 0 a aquisição roda infinitamente.
+A cada minuto salva um arquivo .root com o tempo no nome 2021_12_18_22_02tanca.root (depois vou mudar para salvamento horário)
+(veja linha 188 de fileManager.cc)
+
+.....
+em Digitizer.cc
+ Digitizer::Digitizer(XmlParser settings){ <= Tanca_v01.xml
+*** void Digitizer::DefaultSettings(){     <= variáveis não definidas no Tanca_v01.xml
+ bool Digitizer::OpenDigitizer(){
+ void Digitizer::Readout(){
+ void Digitizer::CloseDigitizer(){
+*** CAEN_DGTZ_ErrorCode Digitizer::ProgramDigitizer(){
+*** CAEN_DGTZ_ErrorCode Digitizer::CoincidenceProgrammer(){
+*** CAEN_DGTZ_ErrorCode Digitizer::OrProgrammer(){
+*** CAEN_DGTZ_ErrorCode Digitizer::WriteRegisterBitmask(uint32_t address, uint32_t data, uint32_t mask) {
+
+ CAEN_DGTZ_ErrorCode Digitizer::Calibrate_DC_Offset(){
+ CAEN_DGTZ_ErrorCode Digitizer::SetCorrectThreshold(){
+
+ void Digitizer::CheckKeyboardCommands(){
+ void Digitizer::startAcq(){
+ void Digitizer::printOn(ostream & out) const{
+ ostream& operator<<(ostream& os, const Digitizer& r) {
+
+==============
+para o trigger temos duas configuraçoes a serem feitas no register 810C
+Veja: UM5961_720_Registers_Description_rev1.pdf
+Global Trigger Mask 810C
+1) quais canais participam do trigger (devem ter threshod configurado)
+enabled trigger requests bits[3:0]
+2) janela de coincidencia
+majority coincidence window bits[23:20]
+3) configurar majority
+Majority Level bits[26:24]
+Exemplo: trigger qualquer coincidencia dupla ou tripla dos canais 0,1 e 2 com uma janela de 80ns
+antes:
+ habiliar os canais 0,1 e 2 e colocar o limiar, polaridade, trigger subindo/descendo
+depois:
+WRITE_REGISTER 810C 1A00007 FFFFFFFF
+===============
+Rodando o codigo DAqTanca.exe com comando de linha
+~/Desktop/DT5720B_DAqTanca/DAqTancaLinuxRootDT5720B/bin/Release$ ./DAqTanca -x ../../xml/Tanca_v01.xml 1>&2> AcqHourly.txt
+o notebook hibernou e a aquisição foi interrompida com erro de comunicação.
+
+=====
+************* CALIBRAÇÃO DA ESCALA DO ADC PARA mV  ******************
+Os arquivos .root contem a TTree dos canais em ChADC
+Para fazer o grafico de V(mV).vs.Tempo(ns) é preciso:
+1) Calibrar o ADC do DAC (16bits, 0 a 65535) que define o DCoffset de referência do ADC de digitalização (12bit, 0 a 4095)
+
+***** Use o wavedump e a opção "D"
+
+to shift the input dynamics accordingly to the input signal polarity (the signal dynamics is 0 to FSR for positive input polarity or -FSR
+to 0 for negative input polarity, where FSR is the full-scale range).
+
+2)No codigo que lê a TTree e faz o gráfico use:
+a) relação entre mV e ChACD
+float Vpp=2000.;// input range da digitalizadora em mV
+float NbitDigi=12.; 
+float FSRdigi= pow(2.0,NbitDigi) -1; // Full-Scale Range, em chADC, da digitalizadora
+float mVch= Vpp/FSRdigi; // para a DT5720B mVch=2000./4095. [mV/chADC]
+
+b) do valor lido em ChADC deve-se subtrair o DCoffset, para isso uso a relação entre o ADC de 16bits e o de 12bits (=4095/65535)
+e depois multiplico por mVch
+float NbitDAC=16.;//no.bits do DAC utilizado no DCoffset de cada canal da digitalizadora
+float DCoffset=xxxx; //DCoffset de cada chADC utilizado na configuração da DT5720B para cada aquisição de dados
+float FSRdac=pow(2.0,NbitDAC) -1; // Full-Scale Range, em chADC, do DAC da DCoffset de cada canal da DT5720B
+float RelADCs=(FSRdigi/FSRdac);
+
+float y=ChA->at(i); //valor, em chADC, do canal da DT5720B
+float ymV=(y-DCoffset*RelADCs)*mVch;
+
+3) Para ter uma calibração mais precisa podemos utilizar uma tensão de referência (uma pilha de 1,5VDC e resistores (ou um resistor variável), media a Vinput com um bom multímetro)
+ATENCAO a digitalizadora é de Vpp=2V.
+fazer medidições para valores de Vinput (50mV, 100mV, 200mV, 800mV e 1800mV) e um ajuste da função de uma reta.
+
+Vinput = A*Vread + B;
+
+Usar os valores obtidos com o fit para os coeficientes da reta A e B para corrigir a ymV
+
+ymV = A*ymV + B;
+=====================================================================
+
+
+
+
+
+
