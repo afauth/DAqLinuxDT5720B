@@ -4,4 +4,4 @@ Este codigo é uma modificação do codigo do Samuel de Jong, https://github.com
 
 Usei Ubuntu 18.04 LTS e ROOT v6.22 para editar e copilar o projeto
 
-Veja os slides ... para mais informação sobre este projeto.
+Veja os slides WorkshopoLAGO_Tucuman2022Fauth.pdf para mais informação sobre este projeto.
